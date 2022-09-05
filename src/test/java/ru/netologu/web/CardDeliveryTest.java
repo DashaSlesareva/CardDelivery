@@ -1,6 +1,7 @@
 package ru.netologu.web;
 
 
+import com.codeborne.selenide.Condition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.Keys;
@@ -16,6 +17,9 @@ import static org.openqa.selenium.Keys.BACK_SPACE;
 
 public class CardDeliveryTest {
 
+    public String generateDate(int days) {
+        return LocalDate.now().plusDays(days).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+    }
 
     @BeforeEach
     void setUp() {
@@ -25,18 +29,19 @@ public class CardDeliveryTest {
 
     @Test
     void positiveTest() {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.uuuu");
-        LocalDate localDate = LocalDate.now();
-        String meetingDate = dtf.format(localDate.plusDays(5));
+
+        String planningDate = generateDate(4);
         $("[data-test-id='city'] input").setValue("Москва");
         $("[data-test-id='date'] .input__control").sendKeys(Keys.CONTROL + "A");
         $("[data-test-id='date'] .input__control").sendKeys(BACK_SPACE);
-        $("[data-test-id='date'] .input__control").setValue(meetingDate);
+        $("[data-test-id='date'] .input__control").setValue(planningDate);
         $("[data-test-id='name'] input").setValue("Андрей Иванов");
         $("[data-test-id='phone'] input").setValue("+79670789786");
         $("[data-test-id='agreement'] span").click();
         $x("//span[text()='Забронировать']").click();
-        $("div[data-test-id='notification']").shouldBe(visible, Duration.ofSeconds(15));
+        $(".notification__content")
+                .shouldHave(Condition.text("Встреча успешно забронирована на " + planningDate), Duration.ofSeconds(15))
+                .shouldBe(Condition.visible);
     }
 
 }
